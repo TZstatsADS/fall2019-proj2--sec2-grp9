@@ -13,21 +13,19 @@ library(rgdal)
 library(dplyr)
 library(leaflet)
 
+load("/data/score_dist.RData") #df_result_omit
+load("/data/Quarter_scores.RData") ##df_monthly
 
-#dataset = read.csv("DOHMH_New_York_City_Restaurant_Inspection_Results.csv")
-
-load("score_dist.RData")
-load("cuisine_score.RData")
-
-df_result_omit=
-  df_result_omit %>%
+df_result_omit <- df_result_omit %>%
   filter(as.numeric(zipcode)>0) %>%
   mutate(region=as.character(zipcode))
-count.df=df_result_omit%>%
-  group_by(region)%>%
+
+count.df=df_result_omit %>%
+  group_by(region) %>%
   summarise(
     value=mean(average_score)
   )
+
 #####################################
 shinyServer(function(input, output) {
   output$plot <- renderPlot({
@@ -36,18 +34,19 @@ shinyServer(function(input, output) {
         filter(year %in% as.numeric(input$year))
     }
     
-    ggplot(df_year,aes(x=average_score))+
-      geom_histogram(aes(y=..density..),color="black",fill="white")+
+    ggplot(df_year,aes(x=average_score)) +
+      geom_histogram(aes(y=..density..),color="black",fill="white") +
       geom_density(alpha=0.2,fill="orchid4")
     
   })  
-  output$plot2<-renderPlot({
+  output$plot2 <- renderPlot({
     
-    df_cuisine=df_result2%>%
-      filter(CUISINE %in% input$cuisine) 
+    df_cuisine <- quarter.scores %>%
+      filter(CUISINE.DESCRIPTION %in% input$cuisine) 
     
-    ggplot(df_cuisine,aes(x=YEAR,y=AVERAGE_SCORE,group=CUISINE,color=CUISINE))+
-      geom_line()
+    ggplot(df_cuisine, aes(x=QUARTER, y=AVG_SCORE, group=CUISINE.DESCRIPTION, color=CUISINE.DESCRIPTION)) +
+      geom_line() + 
+      theme(axis.text.x=element_text(color = "black", size=11, angle=30, vjust=.8, hjust=0.8)) 
   })
   
   output$map<-renderLeaflet({
@@ -107,5 +106,3 @@ shinyServer(function(input, output) {
 }
 
 )
-
-
