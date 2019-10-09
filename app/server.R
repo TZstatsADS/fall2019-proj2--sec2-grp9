@@ -13,7 +13,7 @@ library(rgdal)
 library(dplyr)
 library(leaflet)
 
-df_result_omit <- load(file="../output/score_dist.RData")
+load(file="score_dist.RData")
 quarter.scores <- read.csv("../output/Quarter_scores.csv")
 
 
@@ -27,7 +27,13 @@ count.df=df_result_omit %>%
     value=mean(average_score)
   )
 
+
+popup_labels <- sprintf(
+  "Zip Code: <strong>%s</strong><br/> Average Score: <strong>%s</strong><br/>", 
+  as.character(df_result_omit$zipcode), df_result_omit$average_score) %>% lapply(htmltools::HTML)
+
 #####################################
+
 shinyServer(function(input, output) {
   output$plot <- renderPlot({
     if(input$year>0){
@@ -48,11 +54,19 @@ shinyServer(function(input, output) {
     
     ggplot(df_cuisine, aes(x=QUARTER, y=AVG_SCORE, group=CUISINE.DESCRIPTION, color=CUISINE.DESCRIPTION)) +
       geom_line() + 
-      theme(axis.text.x=element_text(color = "black", size=11, angle=30, vjust=.8, hjust=0.8)) 
+      ggtitle("Average Score Across Time") +
+      ylab("Average Score") + 
+      xlab("Quarter") +
+      guides(color=guide_legend(title="Cuisine Type")) +
+      theme(axis.text.x=element_text(color = "black", size=11, angle=30, vjust=.8, hjust=0.8),
+            plot.title = element_text(hjust=0.5, face="bold"))
+    
+    
   })
   
   output$map<-renderLeaflet({
     # From https://data.cityofnewyork.us/Business/Zip-Code-Boundaries/i8iw-xf4u/data
+    
     NYCzipcodes <- readOGR("ZIP_CODE_040114.shp",
                            #layer = "ZIP_CODE", 
                            verbose = FALSE)
@@ -97,6 +111,9 @@ shinyServer(function(input, output) {
       addProviderTiles("MapBox") %>%
       addPolygons(
         stroke = T, weight=1,
+        highlightOptions = highlightOptions(color='#ff0000', opacity = 0.5, weight = 4, fillOpacity = 0.9,
+                                            bringToFront = TRUE, sendToBack = TRUE),
+        label = popup_labels,
         fillOpacity = 0.6,
         color = ~pal(value)
       ) %>%
