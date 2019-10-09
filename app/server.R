@@ -13,8 +13,9 @@ library(rgdal)
 library(dplyr)
 library(leaflet)
 
-load("/data/score_dist.RData") #df_result_omit
-load("/data/Quarter_scores.RData") ##df_monthly
+df_result_omit <- load(file="../output/score_dist.RData")
+quarter.scores <- read.csv("../output/Quarter_scores.csv")
+
 
 df_result_omit <- df_result_omit %>%
   filter(as.numeric(zipcode)>0) %>%
@@ -30,6 +31,7 @@ count.df=df_result_omit %>%
 shinyServer(function(input, output) {
   output$plot <- renderPlot({
     if(input$year>0){
+      
       df_year=df_result_omit%>%
         filter(year %in% as.numeric(input$year))
     }

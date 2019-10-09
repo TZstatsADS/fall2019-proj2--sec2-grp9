@@ -1,5 +1,5 @@
 ---
-title: "Create Quarter and Neighborhoods DFs"
+title: "Data manipulation"
 author: 'Stefano Longo, UNI: sl4444'
 date: "08/10/2019"
 output: html_document
@@ -8,7 +8,6 @@ output: html_document
 ```{r, warning=F, message=F}
 res <- read.csv(file="../data/DOHMH_New_York_City_Restaurant_Inspection_Results.csv")
 library(dplyr)
-library(ggplot2)
 library(lubridate)
 ```
 
@@ -91,6 +90,6 @@ quarter.scores <- df %>%
   group_by(CUISINE.DESCRIPTION, QUARTER) %>%
   summarise(AVG_SCORE = round(mean(SCORE, na.rm = T),1))
 
-save(quarter.scores, file="../output/Quarter_scores.RData")
+write.csv(quarter.scores, file="../output/Quarter_scores.csv")
 ```
 
