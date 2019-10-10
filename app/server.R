@@ -15,53 +15,69 @@ library(leaflet)
 library(RColorBrewer)
 
 
-#dataset = read.csv("DOHMH_New_York_City_Restaurant_Inspection_Results.csv")
+load("../output/score_dist.RData")
+load("../output/Quarter_scores.RData")
+load("../output/violation.RData")
+load("../output/top10violations.RData")
 
-load("score_dist.RData")
-load("cuisine_score.RData")
-load("violation.RData")
-load("top10violations.RData")
-violation<-read.csv("Violation_Type.csv")
 
-df_result_omit=
-  df_result_omit %>%
+
+df_result_omit <- df_result_omit %>%
   filter(as.numeric(zipcode)>0) %>%
   mutate(region=as.character(zipcode))
-count.df=df_result_omit%>%
+
+count.df <- df_result_omit%>%
   group_by(region)%>%
-  summarise(
-    value=mean(average_score)
-  )
-dt3<-dt3 %>%
+  summarise(value=mean(average_score))
+
+dt3 <- dt3 %>%
   mutate(inspection_year = format(as.Date(INSPECTION.DATE, "%m/%d/%Y"), "%Y"))
-top10<-dt3 %>%
-  filter(dt3$VIOLATION.CODE %in%top10violations$Var1)
+
+top10 <- dt3 %>%
+  filter(dt3$VIOLATION.CODE %in% top10violations$Var1)
+
 #####################################
+
+### Graph 1 ####
 shinyServer(function(input, output) {
 
   output$plot<-renderPlot({
     
-    df <- read.csv("insp_freq.csv")
+    df <- read.csv("../output/insp_freq.csv")
     freq <- df %>% group_by(Year, Month) %>% count() %>% filter(Year > 1990 & (Year >= 2016))
     
     ggplot(data = freq, aes(x =  as.numeric(Month), y = n, color = as.factor(Year)))+
-      geom_line() + geom_point()+scale_x_continuous(breaks = seq(1,12))+
-      theme(legend.title = element_blank())+
-      xlab("Month")+ylab("frequency")+labs(title = "Inspection Frequency")
-  })
-  output$plot2<-renderPlot({
-    
-    df_cuisine=df_result2%>%
-      filter(CUISINE %in% input$cuisine) 
-    
-    ggplot(df_cuisine,aes(x=YEAR,y=AVERAGE_SCORE,group=CUISINE,color=CUISINE))+
-      geom_line()
+      geom_line() + geom_point() + scale_x_continuous(breaks = seq(1,12))+
+      theme(legend.title = element_blank(),
+            plot.title = element_text(hjust=0.5, face="bold")) +
+      xlab("Month") + 
+      ylab("Frequency") + 
+      ggtitle("Inspection Frequency")
   })
   
-  output$plot3<-renderPlot({
+  #### GRAPH 2 #####
+  output$plot2 <- renderPlot({
+    
+    df_cuisine <- quarter.scores %>%
+      filter(CUISINE.DESCRIPTION %in% input$cuisine) 
+    
+    ggplot(df_cuisine, aes(x=QUARTER, y=AVG_SCORE, group=CUISINE.DESCRIPTION, color=CUISINE.DESCRIPTION)) +
+      geom_line() + 
+      ggtitle("Average Score Across Time") +
+      ylab("Average Score") + 
+      xlab("Quarter") +
+      guides(color=guide_legend(title="Cuisine Type")) +
+      theme(axis.text.x=element_text(color = "black", size=11, angle=30, vjust=.8, hjust=0.8),
+            plot.title = element_text(hjust=0.5, face="bold"))
+    
+    
+  })
+  
+  #### GRAPH 3 ####
+  output$plot3 <- renderPlot({
     
     if(input$year2>0){
-      df_year_violation=top10%>%
+      df_year_violation=top10 %>%
         filter(inspection_year %in% as.numeric(input$year2))
     }
     
@@ -75,8 +91,10 @@ shinyServer(function(input, output) {
   })
 
   
+  #### MAP ####
   output$map<-renderLeaflet({
     # From https://data.cityofnewyork.us/Business/Zip-Code-Boundaries/i8iw-xf4u/data
+    
     NYCzipcodes <- readOGR("ZIP_CODE_040114.shp",
                            #layer = "ZIP_CODE", 
                            verbose = FALSE)
