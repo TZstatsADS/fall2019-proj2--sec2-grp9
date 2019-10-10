@@ -40,18 +40,22 @@ shinyUI(navbarPage("Restaurant",
                                                  'Caribbean'='Caribbean'))),
                 mainPanel(plotOutput("plot"),
                           plotOutput("plot2")))),
-  
+    
+    
     #verbatimTextOutput("select"),
-      
-      tabPanel("Map",sidebarLayout(sidebarPanel(selectInput("year2",label="year_for_map",
+    
+    tabPanel("Violation Type",
+             sidebarLayout(sidebarPanel(selectInput("year2",label="year",
+                                                    choices=list("2015"=2015,"2016"=2016,"2017"=2017,"2018"=2018,"2019"=2019))),
+                           mainPanel(plotOutput("plot3"),
+                                     tableOutput("table")))),
+    
+    
+    tabPanel("Map",sidebarLayout(sidebarPanel(selectInput("year2",label="year_for_map",
                                                             choices=list("2016"=2016,"2017"=2017,
                                                                          "2018"=2018,"2019"=2019))),
-                                   mainPanel(leafletOutput("map",width=800,height=500)))),
-     tabPanel("Violation Type",
-              sidebarLayout(sidebarPanel(selectInput("year2",label="year",
-                        choices=list("2015"=2015,"2016"=2016,"2017"=2017,"2018"=2018,"2019"=2019))),
-              mainPanel(plotOutput("plot3"),
-                        tableOutput("table"))))
+                                   mainPanel(leafletOutput("map",width=800,height=500))))
+
               
   
 ))

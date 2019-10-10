@@ -77,7 +77,7 @@ shinyServer(function(input, output) {
   output$plot3 <- renderPlot({
     
     if(input$year2>0){
-      df_year_violation=top10 %>%
+      df_year_violation = top10 %>%
         filter(inspection_year %in% as.numeric(input$year2))
     }
     
@@ -95,7 +95,7 @@ shinyServer(function(input, output) {
   output$map<-renderLeaflet({
     # From https://data.cityofnewyork.us/Business/Zip-Code-Boundaries/i8iw-xf4u/data
     
-    NYCzipcodes <- readOGR("ZIP_CODE_040114.shp",
+    NYCzipcodes <- readOGR("../data/ZIP_CODE_040114.shp",
                            #layer = "ZIP_CODE", 
                            verbose = FALSE)
     df_result_omit=
