@@ -17,8 +17,7 @@ Term: Fall 2019
 	+ Haoyu Zhang
 
 + **Project summary**: The ability to analyse data in order to extract actionable intelligence is one of the main advantages of the current technological landscapes. Public bodies have access to untapped data resources and in fact, this project is mainly intentended for audiences like the NYC Health Department or any other entity interested in investigating restaurants' sanitary standards in New York City. 
-Additionally, some information may even be helpful for consumers, such as NYC residents and/or tourists.
-	The project is mainly divided in three key components that focus on
+Additionally, some information may even be helpful for consumers, such as NYC residents and/or tourists. The project is mainly divided in three key sections that focus on:
 	+ the change over time of inspections and the associated results
 	+ the change over time of the most frequent health violations
 	+ the geographical distribution of inspections and the associated scores
