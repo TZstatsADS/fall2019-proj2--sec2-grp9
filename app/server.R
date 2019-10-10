@@ -26,6 +26,8 @@ df_result_omit <- df_result_omit %>%
   filter(as.numeric(zipcode)>0) %>%
   mutate(region=as.character(zipcode))
 
+df_result_omit$average_score <- round(df_result_omit$average_score,2)
+
 count.df <- df_result_omit%>%
   group_by(region)%>%
   summarise(value=mean(average_score))
@@ -36,6 +38,12 @@ dt3 <- dt3 %>%
 top10 <- dt3 %>%
   filter(dt3$VIOLATION.CODE %in% top10violations$Var1)
 
+
+popup_label <- sprintf(
+  "Zip Code: <strong>%s</strong><br/>Average Score: <strong>%s</strong><br/>Average ",
+  as.character(df_result_omit$region), df_result_omit$average_score) %>%
+  lapply(htmltools::HTML)
+
 #####################################
 
 ### Graph 1 ####
@@ -44,8 +52,13 @@ shinyServer(function(input, output) {
   output$plot<-renderPlot({
     
     df <- read.csv("../output/insp_freq.csv")
-    freq <- df %>% group_by(Year, Month) %>% count() %>% filter(Year > 1990 & (Year >= 2016))
     
+    freq <- df %>%
+      group_by(Year, Month) %>%
+      count() %>%
+      filter(Year >= 2016)
+    freq <- freq[-46,]
+      
     ggplot(data = freq, aes(x =  as.numeric(Month), y = n, color = as.factor(Year)))+
       geom_line() + geom_point() + scale_x_continuous(breaks = seq(1,12))+
       theme(legend.title = element_blank(),
@@ -140,6 +153,7 @@ shinyServer(function(input, output) {
       addPolygons(
         stroke = T, weight=1,
         fillOpacity = 0.6,
+        label = popup_label,
         color = ~pal(value)
       ) %>%
       addLegend(pal = pal, values = ~value, opacity = 0.7, title = NULL,

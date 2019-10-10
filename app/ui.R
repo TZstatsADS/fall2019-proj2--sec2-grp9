@@ -49,9 +49,7 @@ shinyUI(navbarPage("Restaurant",
              sidebarLayout(sidebarPanel(selectInput("year2",label="year_for_map",
                                                             choices=list("2016"=2016,"2017"=2017,
                                                                          "2018"=2018,"2019"=2019))),
-                                   mainPanel(leafletOutput("map",width=1000,height=1000))))
-    
-    
+                                   mainPanel(leafletOutput("map",width=800,height=800))))
     
 
               
