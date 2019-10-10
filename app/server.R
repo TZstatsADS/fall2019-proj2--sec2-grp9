@@ -35,6 +35,8 @@ popup_labels <- sprintf(
 #####################################
 
 shinyServer(function(input, output) {
+  
+  ####HISTOGRAM####
   output$plot <- renderPlot({
     if(input$year>0){
       
@@ -47,6 +49,8 @@ shinyServer(function(input, output) {
       geom_density(alpha=0.2,fill="orchid4")
     
   })  
+  
+  ####TIME GRAPH#####
   output$plot2 <- renderPlot({
     
     df_cuisine <- quarter.scores %>%
@@ -64,19 +68,20 @@ shinyServer(function(input, output) {
     
   })
   
+  ####MAP####
   output$map<-renderLeaflet({
     # From https://data.cityofnewyork.us/Business/Zip-Code-Boundaries/i8iw-xf4u/data
     
     NYCzipcodes <- readOGR("ZIP_CODE_040114.shp",
                            #layer = "ZIP_CODE", 
                            verbose = FALSE)
-    df_result_omit=
-      df_result_omit%>%
-      filter(as.numeric(zipcode)>0)%>%
+    df_result_omit =
+      df_result_omit %>%
+      filter(as.numeric(zipcode)>0) %>%
       mutate(region=as.character(zipcode)) 
     
-    count.df=df_result_omit%>%
-      group_by(region)%>%
+    count.df=df_result_omit %>%
+      group_by(region) %>%
       summarise(
         value = mean(average_score)
       )
@@ -111,8 +116,6 @@ shinyServer(function(input, output) {
       addProviderTiles("MapBox") %>%
       addPolygons(
         stroke = T, weight=1,
-        highlightOptions = highlightOptions(color='#ff0000', opacity = 0.5, weight = 4, fillOpacity = 0.9,
-                                            bringToFront = TRUE, sendToBack = TRUE),
         label = popup_labels,
         fillOpacity = 0.6,
         color = ~pal(value)
