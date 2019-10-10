@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r, warning=F, message=F}
-res <- read.csv(file="../data/DOHMH_New_York_City_Restaurant_Inspection_Results.csv")
+load('../data/Restaurant_Inspections.RData')
 library(dplyr)
 library(lubridate)
 ```

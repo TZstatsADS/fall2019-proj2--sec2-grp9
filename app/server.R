@@ -12,84 +12,89 @@ library(ggplot2)
 library(rgdal)
 library(dplyr)
 library(leaflet)
-
-load(file="score_dist.RData")
-quarter.scores <- read.csv("../output/Quarter_scores.csv")
+library(RColorBrewer)
 
 
-df_result_omit <- df_result_omit %>%
+#dataset = read.csv("DOHMH_New_York_City_Restaurant_Inspection_Results.csv")
+
+load("score_dist.RData")
+load("cuisine_score.RData")
+load("violation.RData")
+load("top10violations.RData")
+violation<-read.csv("Violation_Type.csv")
+
+df_result_omit=
+  df_result_omit %>%
   filter(as.numeric(zipcode)>0) %>%
   mutate(region=as.character(zipcode))
-
-count.df=df_result_omit %>%
-  group_by(region) %>%
+count.df=df_result_omit%>%
+  group_by(region)%>%
   summarise(
     value=mean(average_score)
   )
-
-
-popup_labels <- sprintf(
-  "Zip Code: <strong>%s</strong><br/> Average Score: <strong>%s</strong><br/>", 
-  as.character(df_result_omit$zipcode), df_result_omit$average_score) %>% lapply(htmltools::HTML)
-
+dt3<-dt3 %>%
+  mutate(inspection_year = format(as.Date(INSPECTION.DATE, "%m/%d/%Y"), "%Y"))
+top10<-dt3 %>%
+  filter(dt3$VIOLATION.CODE %in%top10violations$Var1)
 #####################################
-
 shinyServer(function(input, output) {
-  
-  ####HISTOGRAM####
-  output$plot <- renderPlot({
-    if(input$year>0){
-      
-      df_year=df_result_omit%>%
-        filter(year %in% as.numeric(input$year))
-    }
+
+  output$plot<-renderPlot({
     
-    ggplot(df_year,aes(x=average_score)) +
-      geom_histogram(aes(y=..density..),color="black",fill="white") +
-      geom_density(alpha=0.2,fill="orchid4")
+    df <- read.csv("insp_freq.csv")
+    freq <- df %>% group_by(Year, Month) %>% count() %>% filter(Year > 1990 & (Year >= 2016))
     
-  })  
-  
-  ####TIME GRAPH#####
-  output$plot2 <- renderPlot({
+    ggplot(data = freq, aes(x =  as.numeric(Month), y = n, color = as.factor(Year)))+
+      geom_line() + geom_point()+scale_x_continuous(breaks = seq(1,12))+
+      theme(legend.title = element_blank())+
+      xlab("Month")+ylab("frequency")+labs(title = "Inspection Frequency")
+  })
+  output$plot2<-renderPlot({
     
-    df_cuisine <- quarter.scores %>%
-      filter(CUISINE.DESCRIPTION %in% input$cuisine) 
+    df_cuisine=df_result2%>%
+      filter(CUISINE %in% input$cuisine) 
     
-    ggplot(df_cuisine, aes(x=QUARTER, y=AVG_SCORE, group=CUISINE.DESCRIPTION, color=CUISINE.DESCRIPTION)) +
-      geom_line() + 
-      ggtitle("Average Score Across Time") +
-      ylab("Average Score") + 
-      xlab("Quarter") +
-      guides(color=guide_legend(title="Cuisine Type")) +
-      theme(axis.text.x=element_text(color = "black", size=11, angle=30, vjust=.8, hjust=0.8),
-            plot.title = element_text(hjust=0.5, face="bold"))
-    
-    
+    ggplot(df_cuisine,aes(x=YEAR,y=AVERAGE_SCORE,group=CUISINE,color=CUISINE))+
+      geom_line()
   })
   
-  ####MAP####
+  output$plot3<-renderPlot({
+    
+    if(input$year2>0){
+      df_year_violation=top10%>%
+        filter(inspection_year %in% as.numeric(input$year2))
+    }
+    
+  ggplot(df_year_violation, aes(x= factor(VIOLATION.CODE),group=inspection_year))+
+    geom_bar(aes(y = (..count..)/sum(..count..)),fill="skyblue4")+
+    #scale_fill_brewer(palette="Purples")+
+    ggtitle("Frequncy of 10 Most Frequent Violation Types")+
+    xlab("Types of Violation")+
+    ylab("Frequency")+
+    theme(legend.position = "none")
+  })
+
+  
   output$map<-renderLeaflet({
     # From https://data.cityofnewyork.us/Business/Zip-Code-Boundaries/i8iw-xf4u/data
-    
     NYCzipcodes <- readOGR("ZIP_CODE_040114.shp",
                            #layer = "ZIP_CODE", 
                            verbose = FALSE)
-    df_result_omit =
-      df_result_omit %>%
-      filter(as.numeric(zipcode)>0) %>%
+    df_result_omit=
+      df_result_omit%>%
+      filter(as.numeric(zipcode)>0)%>%
       mutate(region=as.character(zipcode)) 
-    
-    count.df=df_result_omit %>%
-      group_by(region) %>%
+    if(input$year2>0){
+      df_year_map=df_result_omit%>%
+        filter(year %in% as.numeric(input$year2))
+    }
+    count.df=df_result_omit%>%
+      group_by(region)%>%
       summarise(
         value = mean(average_score)
       )
     
-    df_result_zip <- df_result_omit
-    
-    
-    selZip <- subset(NYCzipcodes, NYCzipcodes$ZIPCODE %in% df_result_zip$region)
+    selZip <- subset(NYCzipcodes, NYCzipcodes$ZIPCODE %in% df_year_map$region)
     
     # ----- Transform to EPSG 4326 - WGS84 (required)
     subdat<-spTransform(selZip, CRS("+init=epsg:4326"))
@@ -105,7 +110,7 @@ shinyServer(function(input, output) {
     subdat<-SpatialPolygonsDataFrame(subdat, data=subdat_data)
     
     pal <- colorNumeric(
-      palette = "Reds",
+      palette = "Blues",
       domain = subdat$value
     )
     
@@ -116,15 +121,24 @@ shinyServer(function(input, output) {
       addProviderTiles("MapBox") %>%
       addPolygons(
         stroke = T, weight=1,
-        label = popup_labels,
         fillOpacity = 0.6,
         color = ~pal(value)
       ) %>%
       addLegend(pal = pal, values = ~value, opacity = 0.7, title = NULL,
-                position = "bottomright")
+                position = "topleft")
     
+    
+    
+  })
+  
+  
+  
+  output$table<-renderTable({
+    violation
   })
   
 }
 
 )
+
+

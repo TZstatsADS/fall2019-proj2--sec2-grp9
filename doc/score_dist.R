@@ -1,7 +1,6 @@
-etwd("~/desktop")
-dataset = read.csv("~/desktop/prj2/DOHMH_New_York_City_Restaurant_Inspection_Results.csv")
+load('../data/Restaurant_Inspections.RData')
 
-dt1 = na.omit(dataset,cols = ZIPCODE)
+dt1 = na.omit(res,cols = ZIPCODE)
 dt1  = dt1[dt1$INSPECTION.DATE != 01/01/1900,]
 dt1 = dt1[dt1$GRADE %in% c("A","B","C"),]
 df_result<-matrix(NA,nrow=2000,ncol=6)
