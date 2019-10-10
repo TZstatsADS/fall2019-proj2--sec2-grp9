@@ -141,6 +141,7 @@ insp_freq <- data.frame("Month" = month_freq, "Year" = year_freq)
 #write.csv(insp_freq,file="insp_freq.csv",quote=F,row.names = F)
 
 ```
+
 ```{r}
 #Create quarterly data for second graph
 quarter.scores <- df %>%
