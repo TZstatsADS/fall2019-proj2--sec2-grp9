@@ -19,12 +19,6 @@ shinyUI(navbarPage("Restaurant",
     sidebarLayout(sidebarPanel(
                   h5("Each violation of a regulation gets a certain number of points. 
                   The inspection score is the sum of the points."),
-                 hr(),hr(),
-                 hr(),hr(),
-                 hr(),hr(),
-                 hr(),hr(),
-                 hr(),hr(),
-                 hr(),hr(),
                  
                  checkboxGroupInput("cuisine",
                                     label="Cuisine",
@@ -51,10 +45,14 @@ shinyUI(navbarPage("Restaurant",
                                      tableOutput("table")))),
     
     
-    tabPanel("Map",sidebarLayout(sidebarPanel(selectInput("year2",label="year_for_map",
+    tabPanel("Zipcode Details",
+             sidebarLayout(sidebarPanel(selectInput("year2",label="year_for_map",
                                                             choices=list("2016"=2016,"2017"=2017,
                                                                          "2018"=2018,"2019"=2019))),
-                                   mainPanel(leafletOutput("map",width=800,height=500))))
+                                   mainPanel(leafletOutput("map",width=1000,height=1000))))
+    
+    
+    
 
               
   
