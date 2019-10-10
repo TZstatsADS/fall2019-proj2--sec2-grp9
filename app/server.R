@@ -72,7 +72,7 @@ shinyServer(function(input, output) {
     
     
   })
-  
+
   #### GRAPH 3 ####
   output$plot3 <- renderPlot({
     

@@ -119,7 +119,28 @@ df_result_omit<-na.omit(df_result)
 save(df_result_omit, file="../output/score_dist.RData")
 ```
 
+```{r}
+# Pre-processing for insp_freq.csv
+insp_date <- as.character(res$INSPECTION.DATE)
+month_freq <- c(type = "character")
+year_freq <- c(type = "character")
+colnames(insp_freq) <-c("Month", "Year")
+for(i in 1:393129){
+  month_freq[i] <- substr(insp_date[i], 1,2)
+  #insp_freq[i,2] <- substr(insp_date[i], 7,10)
+}
+mon_str <- function(s){
+  return(substr(s,1,2))
+}
+month_freq <- aaply(insp_date,1,mon_str)
+year_str <- function(s){
+  return(substr(s,7,10))
+}
+year_freq <- aaply(insp_date,1,year_str)
+insp_freq <- data.frame("Month" = month_freq, "Year" = year_freq)
+#write.csv(insp_freq,file="insp_freq.csv",quote=F,row.names = F)
 
+```
 ```{r}
 #Create quarterly data for second graph
 quarter.scores <- df %>%
